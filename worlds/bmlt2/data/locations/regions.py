@@ -1,4 +1,5 @@
 region_list: set[str] = {
-    "Star Zone - Star Bomber Castle"
+    "Menu",
+    "Star Zone - Star Bomber Castle",
     "Star Zone - Test"
 }

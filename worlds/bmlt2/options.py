@@ -64,19 +64,7 @@ class ExtendedOptionCounter(OptionCounter):
             raise OptionError("\n".join(errors))
 
 
-class Bombs(Choice):
-    """
-    Select if bombs location are randomized
-    """
-    display_name: "Bombs"
-    default = 0
-    option_shuffle = 0
-    option_vanilla = 1
-
-
 @dataclass
 class BombermanLandTouch2Options(PerGameCommonOptions):
     # General
-
-    # Items, locations, and progression
-    bombs: Bombs
+    pass

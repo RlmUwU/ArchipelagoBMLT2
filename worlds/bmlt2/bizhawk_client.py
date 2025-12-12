@@ -8,8 +8,7 @@ import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
 from .client.locations import check_flag_locations
 from .client.items import receive_items
-from .client.setup import early_setup, late_setup
-from .client.tracker import set_map
+from .client.setup import early_setup
 
 if TYPE_CHECKING:
     from worlds._bizhawk.context import BizHawkClientContext
@@ -79,14 +78,10 @@ class BombermanLandTouch2Client(BizHawkClient):
         """For handling packages from the server. Called from `BizHawkClientContext.on_package`."""
 
         if cmd == 'Connected':
-            from .data.locations import all_item_locations, dexsanity
+            from .data.locations import all_item_locations
             for loc_id in ctx.missing_locations:
                 loc_name = ctx.location_names.lookup_in_game(loc_id)
-                if loc_name in all_item_locations:
-                    self.missing_flag_loc_ids[all_item_locations[loc_name].flag_id].append(loc_id)
-                elif loc_name in dexsanity.location_table:
-                    self.missing_dex_flag_loc_ids[dexsanity.location_table[loc_name].dex_number].append(loc_id)
-                else:
+                if loc_name not in all_item_locations:
                     self.logger.warning(f"Missing location \"{loc_name}\" neither flag nor dex location")
         elif cmd == "RoomInfo":
             ctx.seed_name = args["seed_name"]
@@ -116,11 +111,8 @@ class BombermanLandTouch2Client(BizHawkClient):
                 await early_setup(self, ctx)
                 setup_needed = True
 
-            await set_map(self, ctx)
-
             locations_to_check: list[int] = (
-                    await check_flag_locations(self, ctx) +
-                    await check_dex_locations(self, ctx)
+                    await check_flag_locations(self, ctx)
             )
             if len(locations_to_check) != 0:
                 await ctx.send_msgs([{"cmd": "LocationChecks", "locations": list(locations_to_check)}])
@@ -133,9 +125,6 @@ class BombermanLandTouch2Client(BizHawkClient):
 
             if await self.goal_checking_method(self, ctx):
                 await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
-
-            if setup_needed:
-                await late_setup(self, ctx)
 
         except bizhawk.RequestFailedError:
             pass
@@ -179,7 +168,7 @@ class BombermanLandTouch2Client(BizHawkClient):
         ):
             self.flags_cache[flag // 8] = (await bizhawk.read(
                 ctx.bizhawk_ctx, (
-                    (self.save_data_address + self.flags_offset + (flag // 8), 1, self.ram_read_write_domain),
+                    (self.save_data_address + (flag // 8), 1, self.ram_read_write_domain),
                 )
             ))[0][0]
         self.flags_cache[flag // 8] &= (255 - (2 ** (flag % 8)))
@@ -187,7 +176,7 @@ class BombermanLandTouch2Client(BizHawkClient):
     async def write_var(self, ctx: "BizHawkClientContext", var: int, value: int, length=2) -> None:
         await bizhawk.write(
             ctx.bizhawk_ctx, ((
-                                  self.save_data_address + self.var_offset + (2 * var),
+                                  self.save_data_address + (2 * var),
                                   value.to_bytes(length, "little"),
                                   self.ram_read_write_domain
                               ),)
@@ -196,6 +185,6 @@ class BombermanLandTouch2Client(BizHawkClient):
     async def read_var(self, ctx: "BizHawkClientContext", var: int, length=2) -> int:
         return int.from_bytes((await bizhawk.read(
             ctx.bizhawk_ctx, (
-                (self.save_data_address + self.var_offset + (2 * var), length, self.ram_read_write_domain),
+                (self.save_data_address + (2 * var), length, self.ram_read_write_domain),
             )
         ))[0], "little")

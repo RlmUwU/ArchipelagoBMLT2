@@ -21,5 +21,6 @@ all_fillers: ChainMap[str, "ItemData"] = ChainMap(
 
 all_items_dict_view: ChainMap[str, "ItemData"] = ChainMap(
     items.bombs,
-    items.pieces
+    items.pieces,
+    items.fillers,
 )

@@ -29,7 +29,7 @@ class BombermanLandTouch2Patch(APAutoPatchInterface):
         return PatchMethods.get_manifest(self, super().get_manifest())
 
     def patch(self, target: str) -> None:
-        PatchMethods.patch(self, target, "black")
+        PatchMethods.patch(self, target)
 
     def read_contents(self, opened_zipfile: zipfile.ZipFile) -> Dict[str, Any]:
         return PatchMethods.read_contents(self, opened_zipfile, super().read_contents(opened_zipfile))
@@ -42,7 +42,7 @@ class PatchMethods:
 
     @staticmethod
     def write_contents(patch: BombermanLandTouch2Patch, opened_zipfile: zipfile.ZipFile) -> None:
-        from patch.procedures import base_patch
+        from .patch.procedures import base_patch
 
         procedures: list[str] = ["base_patch"]
 
@@ -56,7 +56,7 @@ class PatchMethods:
         return manifest
 
     @staticmethod
-    def patch(patch: BombermanLandTouch2Patch, target: str, version_name: str) -> None:
+    def patch(patch: BombermanLandTouch2Patch, target: str) -> None:
         from .data import version
 
         patch.read()
@@ -75,7 +75,7 @@ class PatchMethods:
             "base_patch": base_patch.patch
         }
 
-        base_data = get_base_rom_bytes(version_name)
+        base_data = get_base_rom_bytes()
         rom = NintendoDSRom(base_data)
         procedures: list[str] = str(patch.get_file("procedures.txt"), "utf-8").splitlines()
         for prod in procedures:
@@ -116,9 +116,9 @@ class PatchMethods:
         return patch.files[file]
 
 
-def get_base_rom_bytes(version: str, file_name: str = "") -> bytes:
+def get_base_rom_bytes(file_name: str = "") -> bytes:
     if not file_name:
-        file_name = get_base_rom_path(version, file_name)
+        file_name = get_base_rom_path(file_name)
     with open(file_name, "rb") as file:
         base_rom_bytes = bytes(file.read())
     if base_rom_bytes[:18] != b'TCHBMBMNLND2YB2E18':
@@ -127,9 +127,9 @@ def get_base_rom_bytes(version: str, file_name: str = "") -> bytes:
     return base_rom_bytes
 
 
-def get_base_rom_path(version: str, file_name: str = "") -> str:
+def get_base_rom_path(file_name: str = "") -> str:
     if not file_name:
-        file_name = get_settings()["bomberman_land_touch_2_settings"][f"{version}_rom"]
+        file_name = get_settings()["bomberman_land_touch_2_settings"]["rom"]
     if not os.path.exists(file_name):
         file_name = Utils.user_path(file_name)
     return file_name

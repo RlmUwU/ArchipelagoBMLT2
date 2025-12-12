@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 import worlds._bizhawk as bizhawk
-from worlds.bmlt2.bizhawk_client import BombermanLandTouch2Client
 from ..data.items import all_bombs, all_pieces, all_items_dict_view
 
 if TYPE_CHECKING:

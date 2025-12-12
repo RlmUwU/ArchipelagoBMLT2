@@ -71,5 +71,5 @@ def populate_starting_inventory(world: "BombermanLandTouch2World", items: list[B
     pass
 
 
-def place_locked_items(world: "BombermanLandTouch2World", items: list[BombermanLandTouch2World]) -> None:
+def place_locked_items(world: "BombermanLandTouch2World", items: list[BombermanLandTouch2Item]) -> None:
     pass

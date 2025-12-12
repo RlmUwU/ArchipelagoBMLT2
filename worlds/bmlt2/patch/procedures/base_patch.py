@@ -13,15 +13,15 @@ if TYPE_CHECKING:
 
 
 class PatchProcedure(NamedTuple):
-    otpp_patches: list[int, bytes]
+    # otpp_patches: list[int, bytes]
     narc: NARC
     narc_filename: str
 
 
-def patch(rom: NintendoDSRom, world_package: str, bw_patch_instance: "BombermanLandTouch2Patch") -> None:
+def patch(rom: NintendoDSRom, world_package: str, bmlt_patch_instance: "BombermanLandTouch2Patch") -> None:
     from ...data import version
 
-    pad = rom.pad088[:0x15] + bytes(version.rom()) + bw_patch_instance.player_name.encode()
+    pad = rom.pad088[:0x15] + bytes(version.rom()) + bmlt_patch_instance.player_name.encode()
     rom.pad088 = pad + bytes(0x38 - len(pad))
 
     # open patch files zip and create dict of patch procedures
