@@ -31,7 +31,7 @@ class BombermanLandTouch2Client(BizHawkClient):
     ingame_state_address = 0x000034
     header_address = 0x3ffa80
 
-    items_inventory_adress = 0x0AE8E0
+    items_inventory_address = 0x0AE8E0
 
     def __init__(self):
         super().__init__()
@@ -82,7 +82,7 @@ class BombermanLandTouch2Client(BizHawkClient):
             for loc_id in ctx.missing_locations:
                 loc_name = ctx.location_names.lookup_in_game(loc_id)
                 if loc_name not in all_item_locations:
-                    self.logger.warning(f"Missing location \"{loc_name}\" neither flag nor dex location")
+                    self.logger.warning(f"Missing location \"{loc_name}\" neither flag")
         elif cmd == "RoomInfo":
             ctx.seed_name = args["seed_name"]
 
@@ -92,11 +92,11 @@ class BombermanLandTouch2Client(BizHawkClient):
 
         try:
             if (
-                    not ctx.server or
-                    not ctx.server.socket.open or
-                    ctx.server.socket.closed or
-                    ctx.slot_data is None or
-                    self.debug_halt
+                not ctx.server or
+                not ctx.server.socket.open or
+                ctx.server.socket.closed or
+                ctx.slot_data is None or
+                self.debug_halt
             ):
                 return
             read = await bizhawk.read(

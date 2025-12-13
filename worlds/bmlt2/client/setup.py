@@ -18,9 +18,6 @@ async def early_setup(client: "BombermanLandTouch2Client", ctx: "BizHawkClientCo
     )
     client.save_data_address = int.from_bytes(read[0], "little")
 
-    if ctx.slot_data["options"]["dexsanity"] == 0:
-        client.dexsanity_included = False
-
 #
 # async def late_setup(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> None:
 #     from ..data.items import seasons

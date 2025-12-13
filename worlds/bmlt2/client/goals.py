@@ -10,13 +10,13 @@ if TYPE_CHECKING:
 def get_method(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> Callable[
     ["BombermanLandTouch2Client", "BizHawkClientContext"], Coroutine[Any, Any, bool]
 ]:
-
-    match ctx.slot_data["options"]["goal"]:
-        case "finish":
-            return finish
-        case _:
-            client.logger.warning("Bad goal in slot data: "+ctx.slot_data["options"]["goal"])
-            return error
+    return finish
+    # match ctx.slot_data["options"]["goal"]:
+    #     case "finish":
+    #         return finish
+    #     case _:
+    #         client.logger.warning("Bad goal in slot data: "+ctx.slot_data["options"]["goal"])
+    #         return error
 
 
 async def finish(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> bool:
