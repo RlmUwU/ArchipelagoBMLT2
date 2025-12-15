@@ -6,7 +6,7 @@ from NetUtils import ClientStatus
 
 import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
-from .client.locations import check_flag_locations
+from .client.locations import check_flag_items
 from .client.items import receive_items
 from .client.setup import early_setup
 
@@ -31,7 +31,13 @@ class BombermanLandTouch2Client(BizHawkClient):
     ingame_state_address = 0x000034
     header_address = 0x3ffa80
 
+    # Items Inventory
     items_inventory_address = 0x0AE8E0
+    items_flag_offset = 0x13c
+    items_flag_adress = 0x022BA9E0 - items_flag_offset
+    items_flag_amount = 4
+    items_flag_bytes_amount = 4 * 8
+    original_items_flag_location = 0x06e73c
 
     flags_offset = 0xFF
     flags_amount = 5
@@ -39,11 +45,13 @@ class BombermanLandTouch2Client(BizHawkClient):
 
     def __init__(self):
         super().__init__()
-        self.flags_cache: bytearray = bytearray(self.flag_bytes_amount)
+        self.items_flags_cache: bytearray = bytearray(self.items_flag_amount)
         self.player_name: str | None = None
         self.save_data_address = 0
         self.current_map = -1
-        self.goal_checking_method: Callable[["BombermanLandTouch2Client", "BizHawkClientContext"], Coroutine[Any, Any, bool]] | None = None
+        self.goal_checking_method: Callable[["BombermanLandTouch2Client", "BizHawkClientContext"], Coroutine[
+            Any, Any, bool]] | None = None
+        self.missing_flag_item_ids: list[list[int]] = [[] for _ in range(self.items_flag_bytes_amount)]
         self.logger = logging.getLogger("Client")
         self.debug_halt = False
 
@@ -69,6 +77,7 @@ class BombermanLandTouch2Client(BizHawkClient):
         ctx.items_handling = 0b111
         ctx.want_slot_data = True
         ctx.watcher_timeout = 1
+        await self.patch_after_launch(ctx)
         return True
 
     async def set_auth(self, ctx: "BizHawkClientContext") -> None:
@@ -97,11 +106,11 @@ class BombermanLandTouch2Client(BizHawkClient):
 
         try:
             if (
-                not ctx.server or
-                not ctx.server.socket.open or
-                ctx.server.socket.closed or
-                ctx.slot_data is None or
-                self.debug_halt
+                    not ctx.server or
+                    not ctx.server.socket.open or
+                    ctx.server.socket.closed or
+                    ctx.slot_data is None or
+                    self.debug_halt
             ):
                 return
             read = await bizhawk.read(
@@ -117,7 +126,7 @@ class BombermanLandTouch2Client(BizHawkClient):
                 setup_needed = True
 
             locations_to_check: list[int] = (
-                    await check_flag_locations(self, ctx)
+                await check_flag_items(self, ctx)
             )
             if len(locations_to_check) != 0:
                 await ctx.send_msgs([{"cmd": "LocationChecks", "locations": list(locations_to_check)}])
@@ -139,45 +148,45 @@ class BombermanLandTouch2Client(BizHawkClient):
 
     def get_flag(self, flag: int) -> bool:
         print(flag)
-        return (self.flags_cache[flag // 8] & (2 ** (flag % 8))) != 0
+        return (self.items_flags_cache[flag // 8] & (2 ** (flag % 8))) != 0
 
     async def write_set_flag(self, ctx: "BizHawkClientContext", flag: int) -> None:
         while not await bizhawk.guarded_write(
                 ctx.bizhawk_ctx, ((
                                           self.save_data_address + self.flags_offset + (flag // 8),
-                                          [self.flags_cache[flag // 8] | (2 ** (flag % 8))],
+                                          [self.items_flags_cache[flag // 8] | (2 ** (flag % 8))],
                                           self.ram_read_write_domain
                                   ),), ((
                                                 self.save_data_address + self.flags_offset + (flag // 8),
-                                                [self.flags_cache[flag // 8]],
+                                                [self.items_flags_cache[flag // 8]],
                                                 self.ram_read_write_domain
                                         ),)
         ):
-            self.flags_cache[flag // 8] = (await bizhawk.read(
+            self.items_flags_cache[flag // 8] = (await bizhawk.read(
                 ctx.bizhawk_ctx, (
                     (self.save_data_address + self.flags_offset + (flag // 8), 1, self.ram_read_write_domain),
                 )
             ))[0][0]
-        self.flags_cache[flag // 8] |= (2 ** (flag % 8))
+        self.items_flags_cache[flag // 8] |= (2 ** (flag % 8))
 
     async def write_unset_flag(self, ctx: "BizHawkClientContext", flag: int) -> None:
         while not await bizhawk.guarded_write(
                 ctx.bizhawk_ctx, ((
                                           self.save_data_address + self.flags_offset + (flag // 8),
-                                          [self.flags_cache[flag // 8] & (255 - (2 ** (flag % 8)))],
+                                          [self.items_flags_cache[flag // 8] & (255 - (2 ** (flag % 8)))],
                                           self.ram_read_write_domain
                                   ),), ((
                                                 self.save_data_address + self.flags_offset + (flag // 8),
-                                                [self.flags_cache[flag // 8]],
+                                                [self.items_flags_cache[flag // 8]],
                                                 self.ram_read_write_domain
                                         ),)
         ):
-            self.flags_cache[flag // 8] = (await bizhawk.read(
+            self.items_flags_cache[flag // 8] = (await bizhawk.read(
                 ctx.bizhawk_ctx, (
                     (self.save_data_address + (flag // 8), 1, self.ram_read_write_domain),
                 )
             ))[0][0]
-        self.flags_cache[flag // 8] &= (255 - (2 ** (flag % 8)))
+        self.items_flags_cache[flag // 8] &= (255 - (2 ** (flag % 8)))
 
     async def write_var(self, ctx: "BizHawkClientContext", var: int, value: int, length=2) -> None:
         await bizhawk.write(
@@ -194,3 +203,9 @@ class BombermanLandTouch2Client(BizHawkClient):
                 (self.save_data_address + (2 * var), length, self.ram_read_write_domain),
             )
         ))[0], "little")
+
+    async def patch_after_launch(self, ctx: "BizHawkClientContext") -> None:
+        print(f"Patching: location:{self.original_items_flag_location}, flag:{self.items_flag_adress}")
+        await bizhawk.write(ctx.bizhawk_ctx, ((self.original_items_flag_location,
+                                               self.items_flag_adress.to_bytes(self.items_flag_amount, "little"),
+                                               self.ram_read_write_domain),))
