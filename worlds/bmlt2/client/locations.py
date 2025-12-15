@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 async def check_flag_locations(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> list[int]:
 
+
     locations_to_check: list[int] = []
     read = await bizhawk.read(
         ctx.bizhawk_ctx, (

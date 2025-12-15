@@ -27,14 +27,19 @@ class BombermanLandTouch2Client(BizHawkClient):
     ram_read_write_domain = "Main RAM"
     rom_read_only_domain = "ROM"  # Only works on BizHawk 2.10+
 
-    data_address_address = 0x000024  # says 0x21B310 in vanilla W
+    data_address_address = 0x000024
     ingame_state_address = 0x000034
     header_address = 0x3ffa80
 
     items_inventory_address = 0x0AE8E0
 
+    flags_offset = 0xFF
+    flags_amount = 5
+    flag_bytes_amount = math.ceil(flags_amount / 8)
+
     def __init__(self):
         super().__init__()
+        self.flags_cache: bytearray = bytearray(self.flag_bytes_amount)
         self.player_name: str | None = None
         self.save_data_address = 0
         self.current_map = -1
@@ -119,9 +124,9 @@ class BombermanLandTouch2Client(BizHawkClient):
 
             await receive_items(self, ctx)
 
-            if self.flags_cache[0x190 // 8] & 1 != 0:
-                self.logger.warning("An error occurred while receiving an item ingame. "
-                                    "Please report this and what you just received to the devs.")
+            # if self.flags_cache[0x190 // 8] & 1 != 0:
+            #     self.logger.warning("An error occurred while receiving an item ingame. "
+            #                         "Please report this and what you just received to the devs.")
 
             if await self.goal_checking_method(self, ctx):
                 await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
@@ -133,6 +138,7 @@ class BombermanLandTouch2Client(BizHawkClient):
             pass
 
     def get_flag(self, flag: int) -> bool:
+        print(flag)
         return (self.flags_cache[flag // 8] & (2 ** (flag % 8))) != 0
 
     async def write_set_flag(self, ctx: "BizHawkClientContext", flag: int) -> None:

@@ -8,8 +8,7 @@ if TYPE_CHECKING:
 
 
 def get_method(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> Callable[
-    ["BombermanLandTouch2Client", "BizHawkClientContext"], Coroutine[Any, Any, bool]
-]:
+    ["BombermanLandTouch2Client", "BizHawkClientContext"], Coroutine[Any, Any, bool]]:
     return finish
     # match ctx.slot_data["options"]["goal"]:
     #     case "finish":
@@ -20,7 +19,7 @@ def get_method(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext")
 
 
 async def finish(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> bool:
-    return client.get_flag(0x1D3)
+    return client.get_flag(0x1)
 
 
 async def error(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> bool:

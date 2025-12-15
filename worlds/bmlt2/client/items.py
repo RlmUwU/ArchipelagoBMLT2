@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> None:
     received_items_count = await client.read_var(ctx, 0x126, 4)
-    client.logger.debug(f"Received {received_items_count} items")
+    print(f"Received {received_items_count} items")
 
     if received_items_count >= len(ctx.items_received):
         return
@@ -17,6 +17,7 @@ async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClient
     inventory_buffer: bytearray | None = None
 
     new_received = received_items_count
+    print(new_received)
     for index in range(received_items_count, len(ctx.items_received)):
         network_item = ctx.items_received[index]
         name = ctx.item_names.lookup_in_game(network_item.item)
@@ -25,6 +26,7 @@ async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClient
             case x if x in all_bombs:
                 if inventory_buffer is None:
                     inventory_buffer = await read_items(client, ctx)
+                print(f"{x} is a bomb")
                 if not await write_to_items(client, ctx, inventory_buffer, internal_id):
                     client.logger.warning(f"Could not add {name} to main items bag, no space left. "
                                           f"Please report this to the developers.")
@@ -48,18 +50,24 @@ async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClient
 async def read_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> bytearray:
     return bytearray((await bizhawk.read(
         ctx.bizhawk_ctx, (
-            (client.items_inventory_adress, 4, client.ram_read_write_domain),
+            (client.items_inventory_address, 4, client.ram_read_write_domain),
         )
     ))[0])
 
 
 async def write_to_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext", buffer: bytearray, internal_id: int) -> bool:
-    new_bytes = buffer + internal_id.to_bytes(4, "little")
-    client.logger.debug(new_bytes)
+    buffer_size = len(buffer)
+
+    old_bytes = bytes(buffer)
+    new_bytes = bytearray(buffer)
+    mask = internal_id.to_bytes(buffer_size, "little")
+    for i in range(len(new_bytes)):
+        new_bytes[i] |= mask[i]
+    print(f"old: {buffer}, new: {new_bytes}, internal_id: {hex(internal_id)}, location: {hex(client.items_inventory_address)}")
 
     if await bizhawk.guarded_write(
-            ctx.bizhawk_ctx, ((client.items_inventory_adress, new_bytes, client.ram_read_write_domain),),
-            ((client.items_inventory_adress, buffer, client.ram_read_write_domain),)
+            ctx.bizhawk_ctx, ((client.items_inventory_address, new_bytes, client.ram_read_write_domain),),
+            ((client.items_inventory_address, old_bytes, client.ram_read_write_domain),)
     ):
         return True
     else:
