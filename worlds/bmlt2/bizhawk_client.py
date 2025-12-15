@@ -34,9 +34,9 @@ class BombermanLandTouch2Client(BizHawkClient):
     # Items Inventory
     items_inventory_address = 0x0AE8E0
     items_flag_offset = 0x13c
-    items_flag_adress = 0x022BA9E0 - items_flag_offset
+    items_flag_address = 0x022BA9E0 - items_flag_offset
     items_flag_amount = 4
-    items_flag_bytes_amount = 4 * 8
+    items_flag_bytes_amount = math.ceil(items_flag_amount / 8)
     original_items_flag_location = 0x06e73c
 
     flags_offset = 0xFF
@@ -51,7 +51,7 @@ class BombermanLandTouch2Client(BizHawkClient):
         self.current_map = -1
         self.goal_checking_method: Callable[["BombermanLandTouch2Client", "BizHawkClientContext"], Coroutine[
             Any, Any, bool]] | None = None
-        self.missing_flag_item_ids: list[list[int]] = [[] for _ in range(self.items_flag_bytes_amount)]
+        self.missing_flag_item_ids: list[list[int]] = [[] for _ in range(self.items_flag_amount)]
         self.logger = logging.getLogger("Client")
         self.debug_halt = False
 
@@ -95,7 +95,11 @@ class BombermanLandTouch2Client(BizHawkClient):
             from .data.locations import all_item_locations
             for loc_id in ctx.missing_locations:
                 loc_name = ctx.location_names.lookup_in_game(loc_id)
-                if loc_name not in all_item_locations:
+                print(f"{loc_name}: {loc_id}")
+                if loc_name in all_item_locations:
+                    print(f"{all_item_locations[loc_name].flag_id}")
+                    self.missing_flag_item_ids[all_item_locations[loc_name].flag_id].append(loc_id)
+                else:
                     self.logger.warning(f"Missing location \"{loc_name}\" neither flag")
         elif cmd == "RoomInfo":
             ctx.seed_name = args["seed_name"]
@@ -205,7 +209,7 @@ class BombermanLandTouch2Client(BizHawkClient):
         ))[0], "little")
 
     async def patch_after_launch(self, ctx: "BizHawkClientContext") -> None:
-        print(f"Patching: location:{self.original_items_flag_location}, flag:{self.items_flag_adress}")
+        print(f"Patching: location:{self.original_items_flag_location}, flag:{self.items_flag_address}")
         await bizhawk.write(ctx.bizhawk_ctx, ((self.original_items_flag_location,
-                                               self.items_flag_adress.to_bytes(self.items_flag_amount, "little"),
+                                               self.items_flag_address.to_bytes(self.items_flag_amount, "little"),
                                                self.ram_read_write_domain),))
