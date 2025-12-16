@@ -11,9 +11,20 @@ all_bombs: ChainMap[str, "ItemData"] = ChainMap(
     items.bombs
 )
 
-all_pieces: ChainMap[str, "ItemData"] = ChainMap(
-    items.pieces
+# Pieces
+star_piece: ChainMap[str, "ItemData"] = ChainMap(
+    {k: v for k, v in items.pieces.items() if "Star Piece" in k}
 )
+
+moon_piece: ChainMap[str, "ItemData"] = ChainMap(
+    {k: v for k, v in items.pieces.items() if "Moon Piece" in k}
+)
+
+all_pieces: ChainMap[str, "ItemData"] = ChainMap(
+    star_piece,
+    moon_piece
+)
+
 
 all_fillers: ChainMap[str, "ItemData"] = ChainMap(
     items.fillers

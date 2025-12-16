@@ -7,28 +7,40 @@ if TYPE_CHECKING:
 
 
 async def check_flag_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> list[int]:
-
     locations_to_check: list[int] = []
     read = await bizhawk.read(
         ctx.bizhawk_ctx, (
-            (client.items_flag_address + client.items_flag_offset - 0x02000000, client.items_flag_amount, client.ram_read_write_domain),
+            (client.items_flag_address + client.items_flag_offset - 0x02000000 + 0x1, client.items_flag_bytes_amount, client.ram_read_write_domain),
         )
     )
     flags_buffer = read[0]
-    print(f"buffer:{flags_buffer}, at:{hex(client.items_flag_address + client.items_flag_offset)}, cache:{client.items_flags_cache}")
-    for bytes in range(client.items_flag_amount):
-        print(bytes)
-        print(f"cache:{client.items_flags_cache[bytes]} - buffer:{flags_buffer[bytes]}")
-        if client.items_flags_cache[bytes] != flags_buffer[bytes]:
+    for bytes in range(client.items_flag_bytes_amount):
+        if client.items_flags_cache[bytes] - 100 != flags_buffer[bytes]:
             merge = client.items_flags_cache[bytes] | flags_buffer[bytes]
-            print(f"merge: {merge}")
-            if client.items_flags_cache[bytes] != merge:
+            if client.items_flags_cache[bytes] - 100 != merge:
                 for bit in range(8):
-                    print(f"bit:{bit}, value:{merge & (2 ** bit)}")
                     if merge & (2 ** bit) != 0:
-                        print(client.missing_flag_item_ids[bytes * 8 + bit])
                         for loc_id in client.missing_flag_item_ids[bytes * 8 + bit]:
-                            print(f"loc id:{loc_id} ")
                             locations_to_check.append(loc_id)
             client.items_flags_cache[bytes] = merge
+    return locations_to_check
+
+
+async def check_flag_pieces(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> list[int]:
+    locations_to_check: list[int] = []
+    read = await bizhawk.read(
+        ctx.bizhawk_ctx, (
+            (client.piece_flag_address + client.items_flag_offset - 0x02000000, client.piece_flag_bytes_amount, client.ram_read_write_domain),
+        )
+    )
+    flags_buffer = read[0]
+    for bytes in range(client.piece_flag_bytes_amount):
+        if client.pieces_flags_cache[bytes] != flags_buffer[bytes]:
+            merge = client.pieces_flags_cache[bytes] | flags_buffer[bytes]
+            if client.pieces_flags_cache[bytes] != merge:
+                for bit in range(8):
+                    if merge & (2 ** bit) != 0:
+                        for loc_id in client.missing_piece_item_ids[bytes * 8 + bit]:
+                            locations_to_check.append(loc_id)
+            client.pieces_flags_cache[bytes] = merge
     return locations_to_check

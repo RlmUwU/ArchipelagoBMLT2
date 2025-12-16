@@ -9,7 +9,6 @@ if TYPE_CHECKING:
 
 async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> None:
     received_items_count = await client.read_var(ctx, 0x126, 4)
-    print(f"Received {received_items_count} items")
 
     if received_items_count >= len(ctx.items_received):
         return
@@ -17,7 +16,6 @@ async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClient
     inventory_buffer: bytearray | None = None
 
     new_received = received_items_count
-    print(new_received)
     for index in range(received_items_count, len(ctx.items_received)):
         network_item = ctx.items_received[index]
         name = ctx.item_names.lookup_in_game(network_item.item)
@@ -26,8 +24,14 @@ async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClient
             case x if x in all_bombs:
                 if inventory_buffer is None:
                     inventory_buffer = await read_items(client, ctx)
-                print(f"{x} is a bomb")
                 if not await write_to_items(client, ctx, inventory_buffer, internal_id):
+                    client.logger.warning(f"Could not add {name} to main items bag, no space left. "
+                                          f"Please report this to the developers.")
+                    break
+            case x if x in all_pieces:
+                if inventory_buffer is None:
+                    inventory_buffer = await read_pieces(client, ctx)
+                if not await write_to_pieces(client, ctx, inventory_buffer, internal_id):
                     client.logger.warning(f"Could not add {name} to main items bag, no space left. "
                                           f"Please report this to the developers.")
                     break
@@ -50,20 +54,17 @@ async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClient
 async def read_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> bytearray:
     return bytearray((await bizhawk.read(
         ctx.bizhawk_ctx, (
-            (client.items_inventory_address, 4, client.ram_read_write_domain),
+            (client.items_inventory_address, client.items_flag_bytes_amount, client.ram_read_write_domain),
         )
     ))[0])
 
 
 async def write_to_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext", buffer: bytearray, internal_id: int) -> bool:
-    buffer_size = len(buffer)
-
     old_bytes = bytes(buffer)
     new_bytes = bytearray(buffer)
-    mask = internal_id.to_bytes(buffer_size, "little")
-    for i in range(len(new_bytes)):
-        new_bytes[i] |= mask[i]
-    print(f"old: {buffer}, new: {new_bytes}, internal_id: {hex(internal_id)}, location: {hex(client.items_inventory_address)}")
+    byte_index = (internal_id-100) // 8
+    bit_in_byte = (internal_id-100) % 8
+    new_bytes[byte_index] |= (1 << bit_in_byte)
 
     if await bizhawk.guarded_write(
             ctx.bizhawk_ctx, ((client.items_inventory_address, new_bytes, client.ram_read_write_domain),),
@@ -72,3 +73,27 @@ async def write_to_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClien
         return True
     else:
         return await write_to_items(client, ctx, buffer, internal_id)
+
+
+async def read_pieces(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> bytearray:
+    return bytearray((await bizhawk.read(
+        ctx.bizhawk_ctx, (
+            (client.piece_inventory_address + client.piece_flag_offset, client.piece_flag_bytes_amount, client.ram_read_write_domain),
+        )
+    ))[0])
+
+
+async def write_to_pieces(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext", buffer: bytearray, internal_id: int) -> bool:
+    old_bytes = bytes(buffer)
+    new_bytes = bytearray(buffer)
+    byte_index = internal_id // 8
+    bit_in_byte = internal_id % 8
+    new_bytes[byte_index] |= (1 << bit_in_byte)
+
+    if await bizhawk.guarded_write(
+            ctx.bizhawk_ctx, ((client.piece_inventory_address + client.piece_flag_offset, new_bytes, client.ram_read_write_domain),),
+            ((client.piece_inventory_address + client.piece_flag_offset, old_bytes, client.ram_read_write_domain),)
+    ):
+        return True
+    else:
+        return await write_to_pieces(client, ctx, buffer, internal_id)

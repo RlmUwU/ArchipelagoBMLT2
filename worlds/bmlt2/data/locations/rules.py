@@ -1,4 +1,5 @@
 from .. import ExtendedRule, InclusionRule
+from ..items import star_piece
 
 # Bombs
 has_default_bomb: ExtendedRule = lambda state, world: (
@@ -7,9 +8,11 @@ has_default_bomb: ExtendedRule = lambda state, world: (
 
 # Gates
 can_open_star_castle_gate: ExtendedRule = lambda state, world: (
-    state.has("open star castle gate", world.player)
+    state.count_from_list(star_piece, world.player) >= 2
 )
 
 extended_rules_list: tuple = (
-    has_default_bomb, can_open_star_castle_gate
+    has_default_bomb,
+
+    can_open_star_castle_gate
 )
