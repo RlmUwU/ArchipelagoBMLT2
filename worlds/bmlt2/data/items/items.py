@@ -1,9 +1,11 @@
 from .. import ItemData
 from .classification import *
 
+items_id_offset = 256
+
 bombs: dict[str, ItemData] = {
-    "Default Bomb": ItemData(114, always_progression),
-    "Soccer Bomb": ItemData(115, always_progression),
+    "Default Bomb": ItemData(items_id_offset + 14, always_progression),
+    "Soccer Bomb": ItemData(items_id_offset + 15, always_progression),
     # "Basketbomb": ItemData(0x00010000, always_progression)
 }
 
@@ -49,6 +51,76 @@ pieces: dict[str, ItemData] = {
     "Moon Piece 18": ItemData(50, always_progression),
     "Moon Piece 19": ItemData(51, always_progression),
     "Moon Piece 20": ItemData(52, always_progression),
+
+    "Sunny Piece 1": ItemData(65, always_progression),
+    "Sunny Piece 2": ItemData(66, always_progression),
+    "Sunny Piece 3": ItemData(67, always_progression),
+    "Sunny Piece 4": ItemData(68, always_progression),
+    "Sunny Piece 5": ItemData(69, always_progression),
+    "Sunny Piece 6": ItemData(70, always_progression),
+    "Sunny Piece 7": ItemData(71, always_progression),
+    "Sunny Piece 8": ItemData(72, always_progression),
+    "Sunny Piece 9": ItemData(73, always_progression),
+    "Sunny Piece 10": ItemData(74, always_progression),
+    "Sunny Piece 11": ItemData(75, always_progression),
+    "Sunny Piece 12": ItemData(76, always_progression),
+    "Sunny Piece 13": ItemData(77, always_progression),
+    "Sunny Piece 14": ItemData(78, always_progression),
+    "Sunny Piece 15": ItemData(79, always_progression),
+    "Sunny Piece 16": ItemData(80, always_progression),
+    "Sunny Piece 17": ItemData(81, always_progression),
+    "Sunny Piece 18": ItemData(82, always_progression),
+    "Sunny Piece 19": ItemData(83, always_progression),
+    "Sunny Piece 20": ItemData(84, always_progression),
+
+    "Earth Piece 1": ItemData(97, always_progression),
+    "Earth Piece 2": ItemData(98, always_progression),
+    "Earth Piece 3": ItemData(99, always_progression),
+    "Earth Piece 4": ItemData(100, always_progression),
+    "Earth Piece 5": ItemData(101, always_progression),
+    "Earth Piece 6": ItemData(102, always_progression),
+    "Earth Piece 7": ItemData(103, always_progression),
+    "Earth Piece 8": ItemData(104, always_progression),
+    "Earth Piece 9": ItemData(105, always_progression),
+    "Earth Piece 10": ItemData(106, always_progression),
+    "Earth Piece 11": ItemData(107, always_progression),
+    "Earth Piece 12": ItemData(108, always_progression),
+    "Earth Piece 13": ItemData(109, always_progression),
+    "Earth Piece 14": ItemData(110, always_progression),
+    "Earth Piece 15": ItemData(111, always_progression),
+    "Earth Piece 16": ItemData(112, always_progression),
+    "Earth Piece 17": ItemData(113, always_progression),
+    "Earth Piece 18": ItemData(114, always_progression),
+    "Earth Piece 19": ItemData(115, always_progression),
+    "Earth Piece 20": ItemData(116, always_progression),
+
+    # "Lightning Piece 1": ItemData(129, always_progression),
+    # "Lightning Piece 2": ItemData(130, always_progression),
+    # "Lightning Piece 3": ItemData(131, always_progression),
+    # "Lightning Piece 4": ItemData(132, always_progression),
+    # "Lightning Piece 5": ItemData(133, always_progression),
+    # "Lightning Piece 6": ItemData(134, always_progression),
+    # "Lightning Piece 7": ItemData(135, always_progression),
+    # "Lightning Piece 8": ItemData(136, always_progression),
+    # "Lightning Piece 9": ItemData(137, always_progression),
+    # "Lightning Piece 10": ItemData(138, always_progression),
+    #
+    # "Rainbow Piece 1": ItemData(147, always_progression),
+    # "Rainbow Piece 2": ItemData(148, always_progression),
+    # "Rainbow Piece 3": ItemData(149, always_progression),
+    # "Rainbow Piece 4": ItemData(150, always_progression),
+    # "Rainbow Piece 5": ItemData(151, always_progression),
+    #
+    # "Heart Piece 1": ItemData(162, always_progression),
+    # "Heart Piece 2": ItemData(163, always_progression),
+    # "Heart Piece 3": ItemData(164, always_progression),
+    # "Heart Piece 4": ItemData(165, always_progression),
+    # "Heart Piece 5": ItemData(166, always_progression),
+    #
+    # "Forest Key": ItemData(167, always_progression),
+    # "Flame Key": ItemData(168, always_progression),
+    # "Light Key": ItemData(169, always_progression),
+    # "Dark key": ItemData(171, always_progression),
 }
 
 stamps: dict[str, ItemData] = {

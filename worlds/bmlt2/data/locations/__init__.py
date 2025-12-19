@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from collections import ChainMap
 
 if TYPE_CHECKING:
-    from .. import AnyLocationData
+    from .. import AnyLocationData, FlagLocationData
 
 items_locations: ChainMap[str, "AnyLocationData"] = ChainMap[str, "AnyLocationData"](
     items.bombs,

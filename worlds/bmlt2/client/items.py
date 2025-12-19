@@ -86,8 +86,8 @@ async def read_pieces(client: "BombermanLandTouch2Client", ctx: "BizHawkClientCo
 async def write_to_pieces(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext", buffer: bytearray, internal_id: int) -> bool:
     old_bytes = bytes(buffer)
     new_bytes = bytearray(buffer)
-    byte_index = internal_id // 8
-    bit_in_byte = internal_id % 8
+    byte_index = (internal_id-1) // 8
+    bit_in_byte = (internal_id-1) % 8
     new_bytes[byte_index] |= (1 << bit_in_byte)
 
     if await bizhawk.guarded_write(

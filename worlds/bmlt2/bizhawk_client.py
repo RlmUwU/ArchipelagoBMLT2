@@ -36,16 +36,21 @@ class BombermanLandTouch2Client(BizHawkClient):
     items_flag_offset = 0x13c
     items_flag_address = 0x022BA9E0 - items_flag_offset
     items_flag_amount = 32
-    items_flag_bytes_amount = math.ceil(items_flag_amount / 8) # 4
+    items_id_offset = 256
+    items_flag_bytes_amount = math.ceil(items_flag_amount / 8)  # 4
     original_items_flag_location = 0x06E73C
 
     # Pieces Inventory
     piece_inventory_address = 0x0AE7A4
     piece_flag_offset = 0x4
-    piece_flag_address = 0x0243C940 - piece_flag_offset
-    piece_flag_amount = 64
-    piece_flag_bytes_amount = math.ceil(piece_flag_amount / 8) # 8
+    piece_flag_address = 0x023A69C0 - piece_flag_offset
+    piece_flag_amount = 264
+    piece_flag_bytes_amount = math.ceil(piece_flag_amount / 8)  # 8
     original_piece_flag_location = 0x06DEE4
+
+    # Goal Flags
+    goal_flag_size = 1
+
 
     def __init__(self):
         super().__init__()
@@ -65,6 +70,9 @@ class BombermanLandTouch2Client(BizHawkClient):
         self.missing_piece_item_ids: list[list[int]] = [[] for _ in range(self.piece_flag_amount)]
         # Stamps
         self.missing_stamps_item_ids: list[list[int]] = [[] for _ in range(0)]
+
+        # Goal
+        self.goal_flags_cache: bytearray = bytearray(self.goal_flag_size)
 
     async def validate_rom(self, ctx: "BizHawkClientContext") -> bool:
         """Should return whether the currently loaded ROM should be handled by this client. You might read the game name
@@ -165,7 +173,7 @@ class BombermanLandTouch2Client(BizHawkClient):
             pass
 
     def get_flag(self, flag: int) -> bool:
-        return (self.items_flags_cache[flag // 8] & (2 ** (flag % 8))) != 0
+        return (self.goal_flags_cache[flag // 8] & (2 ** (flag % 8))) != 0
 
     # async def write_set_flag(self, ctx: "BizHawkClientContext", flag: int) -> None:
     #     while not await bizhawk.guarded_write(
