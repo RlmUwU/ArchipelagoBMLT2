@@ -1,6 +1,11 @@
+import base64
+from sys import byteorder
 from typing import TYPE_CHECKING
+
+from charset_normalizer import from_bytes
+
 import worlds._bizhawk as bizhawk
-from ..data.items import all_bombs, all_pieces, all_items_dict_view
+from ..data.items import all_bombs, all_pieces, all_items_dict_view, all_stamps
 
 if TYPE_CHECKING:
     from ..bizhawk_client import BombermanLandTouch2Client
@@ -13,7 +18,9 @@ async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClient
     if received_items_count >= len(ctx.items_received):
         return
 
-    inventory_buffer: bytearray | None = None
+    bomb_buffer: bytearray | None = None
+    piece_buffer: bytearray | None = None
+    stamp_buffer: bytearray | None = None
 
     new_received = received_items_count
     for index in range(received_items_count, len(ctx.items_received)):
@@ -22,16 +29,20 @@ async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClient
         internal_id = all_items_dict_view[name].item_id
         match name:
             case x if x in all_bombs:
-                if inventory_buffer is None:
-                    inventory_buffer = await read_items(client, ctx)
-                if not await write_to_items(client, ctx, inventory_buffer, internal_id):
+                bomb_buffer = await read_items(client, ctx)
+                if not await write_to_items(client, ctx, bomb_buffer, internal_id - client.items_id_offset):
                     client.logger.warning(f"Could not add {name} to main items bag, no space left. "
                                           f"Please report this to the developers.")
                     break
             case x if x in all_pieces:
-                if inventory_buffer is None:
-                    inventory_buffer = await read_pieces(client, ctx)
-                if not await write_to_pieces(client, ctx, inventory_buffer, internal_id):
+                piece_buffer = await read_pieces(client, ctx)
+                if not await write_to_pieces(client, ctx, piece_buffer, internal_id):
+                    client.logger.warning(f"Could not add {name} to main items bag, no space left. "
+                                          f"Please report this to the developers.")
+                    break
+            case x if x in all_stamps:
+                stamp_buffer = await read_stamps(client, ctx)
+                if not await write_to_stamps(client, ctx, stamp_buffer, internal_id - client.stamps_id_offset):
                     client.logger.warning(f"Could not add {name} to main items bag, no space left. "
                                           f"Please report this to the developers.")
                     break
@@ -47,8 +58,8 @@ async def receive_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClient
                 client.logger.warning(f"Bad item name: {name}")
         new_received += 1
 
-    # if new_received > received_items_count:
-    #     await client.write_var(ctx, 0x126, new_received, 4)
+    if new_received > received_items_count:
+        await client.write_var(ctx, 0x126, new_received, 4)
 
 
 async def read_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> bytearray:
@@ -62,17 +73,11 @@ async def read_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientCon
 async def write_to_items(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext", buffer: bytearray, internal_id: int) -> bool:
     old_bytes = bytes(buffer)
     new_bytes = bytearray(buffer)
-    byte_index = (internal_id-100) // 8
-    bit_in_byte = (internal_id-100) % 8
+    byte_index = internal_id // 8
+    bit_in_byte = internal_id % 8
     new_bytes[byte_index] |= (1 << bit_in_byte)
 
-    if await bizhawk.guarded_write(
-            ctx.bizhawk_ctx, ((client.items_inventory_address, new_bytes, client.ram_read_write_domain),),
-            ((client.items_inventory_address, old_bytes, client.ram_read_write_domain),)
-    ):
-        return True
-    else:
-        return await write_to_items(client, ctx, buffer, internal_id)
+    return await write_bytes(ctx ,client.items_inventory_address, new_bytes, client.ram_read_write_domain)
 
 
 async def read_pieces(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> bytearray:
@@ -85,15 +90,42 @@ async def read_pieces(client: "BombermanLandTouch2Client", ctx: "BizHawkClientCo
 
 async def write_to_pieces(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext", buffer: bytearray, internal_id: int) -> bool:
     old_bytes = bytes(buffer)
+    # print(f"OLD:{[(byte >> i) & 1 for byte in old_bytes for i in range(7, -1, -1)]}")
     new_bytes = bytearray(buffer)
     byte_index = (internal_id-1) // 8
     bit_in_byte = (internal_id-1) % 8
     new_bytes[byte_index] |= (1 << bit_in_byte)
+    # print(f"NEW:{[(byte >> i) & 1 for byte in new_bytes for i in range(7, -1, -1)]}")
 
-    if await bizhawk.guarded_write(
-            ctx.bizhawk_ctx, ((client.piece_inventory_address + client.piece_flag_offset, new_bytes, client.ram_read_write_domain),),
-            ((client.piece_inventory_address + client.piece_flag_offset, old_bytes, client.ram_read_write_domain),)
-    ):
+    return await write_bytes(ctx, client.piece_inventory_address + client.piece_flag_offset, new_bytes, client.ram_read_write_domain)
+
+async def read_stamps(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext") -> bytearray:
+    return bytearray((await bizhawk.read(
+        ctx.bizhawk_ctx, (
+            (client.stamp_inventory_address, client.stamps_flag_bytes_amount, client.ram_read_write_domain),
+        )
+    ))[0])
+
+async def write_to_stamps(client: "BombermanLandTouch2Client", ctx: "BizHawkClientContext", buffer: bytearray, internal_id: int) -> bool:
+    old_bytes = bytes(buffer)
+    new_bytes = bytearray(buffer)
+    byte_index = internal_id // 8
+    bit_in_byte = internal_id % 8
+    new_bytes[byte_index] |= (1 << bit_in_byte)
+
+    return await write_bytes(ctx, client.stamp_inventory_address, new_bytes, client.ram_read_write_domain)
+
+async def write_bytes(ctx: "BizHawkClientContext", address: int, value: bytearray, domain: str) -> bool:
+    request = [{
+        "type": "WRITE",
+        "address": address,
+        "value": base64.b64encode(bytes(value)).decode("ascii"),
+        "domain": domain
+    }]
+
+    resp = await bizhawk.send_requests(ctx.bizhawk_ctx, request)
+
+    if resp[0]["type"] == "WRITE_RESPONSE":
         return True
     else:
-        return await write_to_pieces(client, ctx, buffer, internal_id)
+        return await write_bytes(ctx, address, value, domain)

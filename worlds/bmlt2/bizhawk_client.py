@@ -6,7 +6,7 @@ from NetUtils import ClientStatus
 
 import worlds._bizhawk as bizhawk
 from worlds._bizhawk.client import BizHawkClient
-from .client.locations import check_flag_items, check_flag_pieces
+from .client.locations import check_flag_items, check_flag_pieces, check_flag_stamps
 from .client.items import receive_items
 from .client.setup import early_setup
 
@@ -31,22 +31,35 @@ class BombermanLandTouch2Client(BizHawkClient):
     ingame_state_address = 0x000034
     header_address = 0x3ffa80
 
-    # Items Inventory
-    items_inventory_address = 0x0AE8E0
-    items_flag_offset = 0x13c
-    items_flag_address = 0x022BA9E0 - items_flag_offset
-    items_flag_amount = 32
-    items_id_offset = 256
-    items_flag_bytes_amount = math.ceil(items_flag_amount / 8)  # 4
-    original_items_flag_location = 0x06E73C
+
 
     # Pieces Inventory
     piece_inventory_address = 0x0AE7A4
     piece_flag_offset = 0x4
-    piece_flag_address = 0x023A69C0 - piece_flag_offset
+    piece_flag_address = 0x023A6B00 - piece_flag_offset
     piece_flag_amount = 264
     piece_flag_bytes_amount = math.ceil(piece_flag_amount / 8)  # 8
     original_piece_flag_location = 0x06DEE4
+
+    # Stamps Inventory
+    stamp_inventory_address = 0x0AE7E8 # Where the stamps are stored
+    stamp_flag_offset = 0x20
+    stamp_flag_amount = 10 # Number of addresses covered by the inventory
+    stamps_flag_bytes_amount = math.ceil(stamp_flag_amount / 8)  # 2
+    stamp_flag_address = piece_flag_address + 0x17
+    original_stamp_flag_location = 0x06CB24
+    stamps_id_offset = 200  # Offset of the IDs in AP
+
+    # Items Inventory
+    items_inventory_address = 0x0AE8E0  # Where the item are stored
+    items_flag_offset = 0x13c  # Offset present in the original game code
+    items_flag_address = stamp_flag_address + 0x20  # Where the data is stored
+    items_flag_amount = 32  # Number of addresses covered by the inventory
+    items_id_offset = 256  # Offset of the IDs in AP
+    items_flag_bytes_amount = math.ceil(items_flag_amount / 8)  # 4
+    original_items_flag_location = 0x06E73C  # Where the item location is stored
+
+    # Pennies
 
     # Goal Flags
     goal_flag_size = 1
@@ -69,8 +82,8 @@ class BombermanLandTouch2Client(BizHawkClient):
         self.pieces_flags_cache: bytearray = bytearray(self.piece_flag_bytes_amount)
         self.missing_piece_item_ids: list[list[int]] = [[] for _ in range(self.piece_flag_amount)]
         # Stamps
-        self.missing_stamps_item_ids: list[list[int]] = [[] for _ in range(0)]
-
+        self.stamps_flags_cache: bytearray = bytearray(self.stamps_flag_bytes_amount)
+        self.missing_stamp_item_ids: list[list[int]] = [[] for _ in range(self.stamp_flag_amount)]
         # Goal
         self.goal_flags_cache: bytearray = bytearray(self.goal_flag_size)
 
@@ -115,11 +128,11 @@ class BombermanLandTouch2Client(BizHawkClient):
             for loc_id in ctx.missing_locations:
                 loc_name = ctx.location_names.lookup_in_game(loc_id)
                 if loc_name in items_locations:
-                    self.missing_flag_item_ids[items_locations[loc_name].flag_id - 100].append(loc_id)
+                    self.missing_flag_item_ids[items_locations[loc_name].flag_id - self.items_id_offset].append(loc_id)
                 elif loc_name in pieces_location:
                     self.missing_piece_item_ids[pieces_location[loc_name].flag_id].append(loc_id)
                 elif loc_name in stamps_location:
-                    self.missing_stamps_item_ids[stamps_location[loc_name].flag_id].append(loc_id)
+                    self.missing_stamp_item_ids[stamps_location[loc_name].flag_id - self.stamps_id_offset].append(loc_id)
                 else:
                     self.logger.warning(f"Missing location \"{loc_name}\" neither flag")
         elif cmd == "RoomInfo":
@@ -152,7 +165,8 @@ class BombermanLandTouch2Client(BizHawkClient):
 
             locations_to_check: list[int] = (
                 await check_flag_items(self, ctx) +
-                await check_flag_pieces(self, ctx)
+                await check_flag_pieces(self, ctx) +
+                await check_flag_stamps(self, ctx)
             )
             if len(locations_to_check) != 0:
                 await ctx.send_msgs([{"cmd": "LocationChecks", "locations": list(locations_to_check)}])
@@ -231,9 +245,13 @@ class BombermanLandTouch2Client(BizHawkClient):
 
     async def patch_after_launch(self, ctx: "BizHawkClientContext") -> None:
         await bizhawk.write(ctx.bizhawk_ctx, ((self.original_items_flag_location,
-                                               self.items_flag_address.to_bytes(8, "little"),
+                                               (self.items_flag_address - self.items_flag_offset).to_bytes(8, "little"),
                                                self.ram_read_write_domain),))
 
         await bizhawk.write(ctx.bizhawk_ctx, ((self.original_piece_flag_location,
                                                self.piece_flag_address.to_bytes(8, "little"),
+                                               self.ram_read_write_domain),))
+
+        await bizhawk.write(ctx.bizhawk_ctx, ((self.original_stamp_flag_location,
+                                               (self.stamp_flag_address - self.stamp_flag_offset).to_bytes(8, "little"),
                                                self.ram_read_write_domain),))

@@ -3,6 +3,7 @@ from ..rules import *
 from ..progress_type import *
 
 items_id_offset = 256
+stamp_id_offset = 200
 
 bombs: dict[str, FlagLocationData] = {
     "StarZone - Starbomber Castle - Right Chest": FlagLocationData(items_id_offset + 6, always_priority,
@@ -95,27 +96,45 @@ pieces: dict[str, FlagLocationData] = {
     "Earth Piece 18 Location": FlagLocationData(114, always_default, "Star Zone - Test", None, None),
     "Earth Piece 19 Location": FlagLocationData(115, always_default, "Star Zone - Test", None, None),
     "Earth Piece 20 Location": FlagLocationData(116, always_default, "Star Zone - Test", None, None),
+
+    "Lightning Piece 1 Location": FlagLocationData(129, always_default, "Star Zone - Test", None, None),
+    "Lightning Piece 2 Location": FlagLocationData(130, always_default, "Star Zone - Test", None, None),
+    "Lightning Piece 3 Location": FlagLocationData(131, always_default, "Star Zone - Test", None, None),
+    "Lightning Piece 4 Location": FlagLocationData(132, always_default, "Star Zone - Test", None, None),
+    "Lightning Piece 5 Location": FlagLocationData(133, always_default, "Star Zone - Test", None, None),
+    "Lightning Piece 6 Location": FlagLocationData(134, always_default, "Star Zone - Test", None, None),
+    "Lightning Piece 7 Location": FlagLocationData(135, always_default, "Star Zone - Test", None, None),
+    "Lightning Piece 8 Location": FlagLocationData(136, always_default, "Star Zone - Test", None, None),
+    "Lightning Piece 9 Location": FlagLocationData(137, always_default, "Star Zone - Test", None, None),
+    "Lightning Piece 10 Location": FlagLocationData(138, always_default, "Star Zone - Test", None, None),
+
+    "Rainbow Piece 1 Location": FlagLocationData(145, always_default, "Star Zone - Test", None, None),
+    "Rainbow Piece 2 Location": FlagLocationData(146, always_default, "Star Zone - Test", None, None),
+    "Rainbow Piece 3 Location": FlagLocationData(147, always_default, "Star Zone - Test", None, None),
+    "Rainbow Piece 4 Location": FlagLocationData(148, always_default, "Star Zone - Test", None, None),
+    "Rainbow Piece 5 Location": FlagLocationData(149, always_default, "Star Zone - Test", None, None),
+
+    "Heart Piece 1 Location": FlagLocationData(162, always_default, "Star Zone - Test", None, None),
+    "Heart Piece 2 Location": FlagLocationData(163, always_default, "Star Zone - Test", None, None),
+    "Heart Piece 3 Location": FlagLocationData(164, always_default, "Star Zone - Test", None, None),
+    "Heart Piece 4 Location": FlagLocationData(165, always_default, "Star Zone - Test", None, None),
+    "Heart Piece 5 Location": FlagLocationData(166, always_default, "Star Zone - Test", None, None),
+
+    "Forest Key Location": FlagLocationData(177, always_default, "Star Zone - Test", None, None),
+    "Flame Key Location": FlagLocationData(178, always_default, "Star Zone - Test", None, None),
+    "Light Key Location": FlagLocationData(179, always_default, "Star Zone - Test", None, None),
+    "Dark key Location": FlagLocationData(181, always_default, "Star Zone - Test", None, None),
 }
 
 stamps: dict[str, FlagLocationData] = {
-    "Earth Piece 1 Location": FlagLocationData(97, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 2 Location": FlagLocationData(98, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 3 Location": FlagLocationData(99, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 4 Location": FlagLocationData(100, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 5 Location": FlagLocationData(101, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 6 Location": FlagLocationData(102, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 7 Location": FlagLocationData(103, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 8 Location": FlagLocationData(104, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 9 Location": FlagLocationData(105, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 10 Location": FlagLocationData(106, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 11 Location": FlagLocationData(107, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 12 Location": FlagLocationData(108, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 13 Location": FlagLocationData(109, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 14 Location": FlagLocationData(110, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 15 Location": FlagLocationData(111, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 16 Location": FlagLocationData(112, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 17 Location": FlagLocationData(113, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 18 Location": FlagLocationData(114, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 19 Location": FlagLocationData(115, always_default, "Star Zone - Test", None, None),
-    "Earth Piece 20 Location": FlagLocationData(116, always_default, "Star Zone - Test", None, None),
+    "Star Bomber Castle Stamp": FlagLocationData(0 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
+    "Swirlpool Stamp": FlagLocationData(1 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
+    "Happy Falls Stamp": FlagLocationData(2 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
+    "Freaky Cliff Stamp": FlagLocationData(3 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
+    "Moon Circus Stamp": FlagLocationData(4 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
+    "Seaside Stamp": FlagLocationData(5 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
+    "Sunny Tower Stamp": FlagLocationData(6 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
+    "Gooey graveyard Stamp": FlagLocationData(7 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
+    "Dragon cavern Stamp": FlagLocationData(8 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
+    "Evil palace Stamp": FlagLocationData(9 + stamp_id_offset, always_default, "Star Zone - Test", None, None),
 }

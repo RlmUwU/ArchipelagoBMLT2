@@ -14,4 +14,5 @@ pieces_location: ChainMap[str, "AnyLocationData"] = ChainMap[str, "AnyLocationDa
 )
 
 stamps_location: ChainMap[str, "AnyLocationData"] = ChainMap[str, "AnyLocationData"](
+    items.stamps
 )

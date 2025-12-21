@@ -2,6 +2,7 @@ from .. import ItemData
 from .classification import *
 
 items_id_offset = 256
+stamp_id_offset = 200
 
 bombs: dict[str, ItemData] = {
     "Default Bomb": ItemData(items_id_offset + 14, always_progression),
@@ -94,37 +95,46 @@ pieces: dict[str, ItemData] = {
     "Earth Piece 19": ItemData(115, always_progression),
     "Earth Piece 20": ItemData(116, always_progression),
 
-    # "Lightning Piece 1": ItemData(129, always_progression),
-    # "Lightning Piece 2": ItemData(130, always_progression),
-    # "Lightning Piece 3": ItemData(131, always_progression),
-    # "Lightning Piece 4": ItemData(132, always_progression),
-    # "Lightning Piece 5": ItemData(133, always_progression),
-    # "Lightning Piece 6": ItemData(134, always_progression),
-    # "Lightning Piece 7": ItemData(135, always_progression),
-    # "Lightning Piece 8": ItemData(136, always_progression),
-    # "Lightning Piece 9": ItemData(137, always_progression),
-    # "Lightning Piece 10": ItemData(138, always_progression),
-    #
-    # "Rainbow Piece 1": ItemData(147, always_progression),
-    # "Rainbow Piece 2": ItemData(148, always_progression),
-    # "Rainbow Piece 3": ItemData(149, always_progression),
-    # "Rainbow Piece 4": ItemData(150, always_progression),
-    # "Rainbow Piece 5": ItemData(151, always_progression),
-    #
-    # "Heart Piece 1": ItemData(162, always_progression),
-    # "Heart Piece 2": ItemData(163, always_progression),
-    # "Heart Piece 3": ItemData(164, always_progression),
-    # "Heart Piece 4": ItemData(165, always_progression),
-    # "Heart Piece 5": ItemData(166, always_progression),
-    #
-    # "Forest Key": ItemData(167, always_progression),
-    # "Flame Key": ItemData(168, always_progression),
-    # "Light Key": ItemData(169, always_progression),
-    # "Dark key": ItemData(171, always_progression),
+    "Lightning Piece 1": ItemData(129, always_progression),
+    "Lightning Piece 2": ItemData(130, always_progression),
+    "Lightning Piece 3": ItemData(131, always_progression),
+    "Lightning Piece 4": ItemData(132, always_progression),
+    "Lightning Piece 5": ItemData(133, always_progression),
+    "Lightning Piece 6": ItemData(134, always_progression),
+    "Lightning Piece 7": ItemData(135, always_progression),
+    "Lightning Piece 8": ItemData(136, always_progression),
+    "Lightning Piece 9": ItemData(137, always_progression),
+    "Lightning Piece 10": ItemData(138, always_progression),
+
+    "Rainbow Piece 1": ItemData(147, always_progression),
+    "Rainbow Piece 2": ItemData(148, always_progression),
+    "Rainbow Piece 3": ItemData(149, always_progression),
+    "Rainbow Piece 4": ItemData(150, always_progression),
+    "Rainbow Piece 5": ItemData(151, always_progression),
+
+    "Heart Piece 1": ItemData(162, always_progression),
+    "Heart Piece 2": ItemData(163, always_progression),
+    "Heart Piece 3": ItemData(164, always_progression),
+    "Heart Piece 4": ItemData(165, always_progression),
+    "Heart Piece 5": ItemData(166, always_progression),
+
+    "Forest Key": ItemData(177, always_progression),
+    "Flame Key": ItemData(178, always_progression),
+    "Light Key": ItemData(179, always_progression),
+    "Dark Key": ItemData(181, always_progression)
 }
 
 stamps: dict[str, ItemData] = {
-
+    "Star Bomber Castle Stamp": ItemData(0 + stamp_id_offset, always_progression),
+    "Swirlpool Stamp": ItemData(1 + stamp_id_offset, always_progression),
+    "Happy Falls Stamp": ItemData(2 + stamp_id_offset, always_progression),
+    "Freaky Cliff Stamp": ItemData(3 + stamp_id_offset, always_progression),
+    "Moon Circus Stamp": ItemData(4 + stamp_id_offset, always_progression),
+    "Seaside Stamp": ItemData(5 + stamp_id_offset, always_progression),
+    "Sunny Tower Stamp": ItemData(6 + stamp_id_offset, always_progression),
+    "Gooey graveyard Stamp": ItemData(7 + stamp_id_offset, always_progression),
+    "Dragon cavern Stamp": ItemData(8 + stamp_id_offset, always_progression),
+    "Evil palace Stamp": ItemData(9 + stamp_id_offset, always_progression)
 }
 
 fillers: dict[str, ItemData] = {

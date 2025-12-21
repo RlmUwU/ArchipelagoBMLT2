@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 
 def generate_default(world: "BombermanLandTouch2World") -> list[BombermanLandTouch2Item]:
-    from ...data.items.items import bombs, pieces, fillers
+    from ...data.items.items import bombs, pieces, fillers, stamps
 
     items = [
         BombermanLandTouch2Item(name, data.classification(world), data.item_id, world.player)
@@ -14,6 +14,9 @@ def generate_default(world: "BombermanLandTouch2World") -> list[BombermanLandTou
     ] + [
         BombermanLandTouch2Item(name, data.classification(world), data.item_id, world.player)
         for name, data in pieces.items()
+    ] + [
+        BombermanLandTouch2Item(name, data.classification(world), data.item_id, world.player)
+        for name, data in stamps.items()
     ] + [
         BombermanLandTouch2Item(name, data.classification(world), data.item_id, world.player)
         for name, data in fillers.items()
